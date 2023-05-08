@@ -1,31 +1,28 @@
 @baseUrl = http://192.168.1.20:8322
 
-GET {{baseUrl}}
+GET {{baseUrl}}/todo
 
-### All rooms
+###
 
-GET {{baseUrl}}/rooms
-
-### Enskilda rooms
-
-GET {{baseUrl}}/rooms/2
-
-### Get guests
-
-GET {{baseUrl}}/guests
-
-### Post booking
-
-POST {{baseUrl}}/bookings
+POST {{baseUrl}}/todo
 Content-Type: application/json
 
 {
-    "room_id": 2,
-    "guest_id": 1,
-    "datefrom": "2023-05-01",
-    "dateto": "2023-05-05",
-    "addinfo": "Öööööh"
+    "user_id": 1,
+    "category_id": 1,
+    "title": "Gör en ToDo API",
+    "due_date": "2023-05-20"
 }
 
-### GET bookings
-GET {{baseUrl}}/bookings
+###
+
+PUT {{baseUrl}}/todo/1
+
+Content-Type: application/json
+
+{
+    "category_id": 1,
+    "title": "Ny tittel",
+    "due_date": "2023-05-20",
+    "id": 1
+}

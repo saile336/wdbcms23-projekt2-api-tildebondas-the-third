@@ -1,61 +1,108 @@
-import os, psycopg
+import os
+import psycopg
 from psycopg.rows import dict_row
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 
 app = Flask(__name__)
-CORS(app) 
+CORS(app)
 app.config['JSON_AS_ASCII'] = False
 
 load_dotenv()
 db_url = os.environ.get("DB_URL")
 
-conn = psycopg.connect(db_url, row_factory=dict_row, autocommit=True) #dict_row: få query-resultat som list of dicts
+# dict_row: få query-resultat som list of dicts
+conn = psycopg.connect(db_url, row_factory=dict_row, autocommit=True)
+
 
 @app.route("/")
 def index():
-    return { "message": "Use /todo for API endpoint" }
+    return {"message": "Use /todo for API endpoint"}
 
-@app.route("/todo", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+
+@app.route("/todo", methods=["GET", "POST"])
 def get_todos():
     if request.method == 'GET':
         with conn.cursor() as cur:
-            cur.execute("SELECT todo.*, categories.category_name FROM todo INNER JOIN categories on todo.category_id = categories.category_name ")
+            cur.execute(
+                "SELECT todo.*, categories.category_name FROM todo INNER JOIN categories ON todo.category_id=categories.id")
             result = cur.fetchall()
-        return { "bookings": result }
+        return {"ToDo": result}
 
     if request.method == 'POST':
         try:
             req_body = request.get_json()
             with conn.cursor() as cur:
                 cur.execute("""
-                    INSERT INTO hotel_booking (
-                        room_id,
-                        guest_id,
-                        datefrom,
-                        dateto, 
-                        addinfo
+                    INSERT INTO todo (
+                        user_id,
+                        category_id,
+                        title,
+                        due_date
                     ) VALUES (
-                        %s, %s, %s, %s, %s
+                        %s, %s, %s, %s
                     ) RETURNING id
                 """, [
-                req_body['room_id'], 
-                req_body['guest_id'], 
-                req_body['datefrom'], 
-                req_body['dateto'],
-                req_body['addinfo']
+                    req_body['user_id'],
+                    req_body['category_id'],
+                    req_body['title'],
+                    req_body['due_date'],
                 ])
                 return {"id": cur.fetchone()['id']}
         except Exception as e:
-            print(repr(e))
-            return { "ERROR, check logs for details" }, 400
+            print(e)
+            return {"ERROR": "Check logs for details"}, 400
 
     else:
-        return { "Du använde metoden": request.method }
+        return {"Du använde metoden": request.method}
 
 
-## Kom ihåg:
+@app.route("/todo/<int:id>", methods=["PUT", "PATCH", "DELETE"])
+def update_todo():
+    if request.method == "PUT" or request.method == "PATCH":
+        try:
+            req_body = request.get_json()
+            with conn.cursor() as cur:
+                cur.execute("""
+                    UPDATE todo 
+                    SET category_id=%s,
+                        title=%s,
+                        due_date=%s
+                    WHERE id=%s
+                    RETURNING id
+                """, [
+                    req_body['category_id'],
+                    req_body['title'],
+                    req_body['due_date'],
+                    req_body['id'],
+                ])
+                return {"updated todo id": cur.fetchone()['id']}
+
+        except Exception as e:
+            print(repr(e))
+            return {"ERROR, check logs for details"}, 400
+
+    if request.method == "DELETE":
+        try:
+            req_body = request.get_json()
+            with conn.cursor() as cur:
+                cur.execute("""
+                    DELETE todo where id=%s RETURNING id
+                """, [
+                    req_body['id']
+                ])
+                return {"deleted id": cur.fetchone()['id']}
+
+        except Exception as e:
+            print(repr(e))
+            return {"ERROR, check logs for details"}, 400
+
+    else:
+        return {"Du använde metoden": request.method}
+
+
+# Kom ihåg:
 # - pip install -r requirements.txt
 # - Kopiera/byt namn på .env-example ==> .env och sätt in en riktig DB_URL
 # - Ändra portnummer nedan
