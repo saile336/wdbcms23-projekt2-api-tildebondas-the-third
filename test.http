@@ -1,0 +1,31 @@
+@baseUrl = http://192.168.1.20:8322
+
+GET {{baseUrl}}
+
+### All rooms
+
+GET {{baseUrl}}/rooms
+
+### Enskilda rooms
+
+GET {{baseUrl}}/rooms/2
+
+### Get guests
+
+GET {{baseUrl}}/guests
+
+### Post booking
+
+POST {{baseUrl}}/bookings
+Content-Type: application/json
+
+{
+    "room_id": 2,
+    "guest_id": 1,
+    "datefrom": "2023-05-01",
+    "dateto": "2023-05-05",
+    "addinfo": "Öööööh"
+}
+
+### GET bookings
+GET {{baseUrl}}/bookings
