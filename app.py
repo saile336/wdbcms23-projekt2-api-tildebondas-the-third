@@ -15,6 +15,15 @@ db_url = os.environ.get("DB_URL")
 def index():
     return { "message": "Hello" }
 
+@app.route("/todo", methods=["GET"])
+def get_todos():
+    conn = psycopg.connect(db_url)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM todos")
+    todos = cursor.fetchall()
+    conn.close()
+    return jsonify(todos)
+
 
 ## Kom ihåg:
 # - pip install -r requirements.txt
@@ -22,4 +31,4 @@ def index():
 # - Ändra portnummer nedan
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8888, debug=True)
+    app.run(host='0.0.0.0', port=8448, debug=True)
