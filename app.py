@@ -1,7 +1,7 @@
 import os
 import psycopg
 from psycopg.rows import dict_row
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, escape
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -38,9 +38,9 @@ def get_todos():
                 FROM todo 
                 INNER JOIN categories 
                 ON todo.category_id=categories.id
-                ORDER BY id ASC""")
+                ORDER BY due_date ASC""")
             result = cur.fetchall()
-        return {"ToDo": result}
+        return jsonify(result)
 
     if request.method == 'POST':
         try:
@@ -58,7 +58,7 @@ def get_todos():
                 """, [
                     req_body['user_id'],
                     req_body['category_id'],
-                    req_body['title'],
+                    escape(req_body['title']),
                     req_body['due_date'],
                 ])
                 return {"id": cur.fetchone()['id']}
@@ -84,7 +84,7 @@ def update_todo(id):
                     WHERE id = %s;
                 """, [
                     req_body['category_id'],
-                    req_body['title'],
+                    escape(req_body['title']),
                     req_body['due_date'],
                     id,
                 ])
