@@ -26,7 +26,19 @@ def get_todos():
     if request.method == 'GET':
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT todo.*, categories.category_name FROM todo INNER JOIN categories ON todo.category_id=categories.id")
+            """ SELECT todo.id,
+                todo.user_id,
+                todo.title,
+                todo.done,
+                todo.due_date,
+                todo.created_at,
+                todo.updated_at,
+                todo.sort_order,
+                categories.category_name 
+                FROM todo 
+                INNER JOIN categories 
+                ON todo.category_id=categories.id
+                ORDER BY id ASC""")
             result = cur.fetchall()
         return {"ToDo": result}
 
