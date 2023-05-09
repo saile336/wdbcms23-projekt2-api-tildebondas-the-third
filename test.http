@@ -17,12 +17,14 @@ Content-Type: application/json
 ###
 
 PUT {{baseUrl}}/todo/1
-
 Content-Type: application/json
 
 {
     "category_id": 1,
     "title": "Ny tittel",
-    "due_date": "2023-05-20",
-    "id": 1
+    "due_date": "2023-05-20"
 }
+
+###
+
+DELETE {{baseUrl}}/todo/1

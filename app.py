@@ -51,7 +51,7 @@ def get_todos():
                 ])
                 return {"id": cur.fetchone()['id']}
         except Exception as e:
-            print(e)
+            print(repr(e))
             return {"ERROR": "Check logs for details"}, 400
 
     else:
@@ -59,40 +59,36 @@ def get_todos():
 
 
 @app.route("/todo/<int:id>", methods=["PUT", "PATCH", "DELETE"])
-def update_todo():
+def update_todo(id):
     if request.method == "PUT" or request.method == "PATCH":
         try:
             req_body = request.get_json()
             with conn.cursor() as cur:
                 cur.execute("""
-                    UPDATE todo 
-                    SET category_id=%s,
-                        title=%s,
-                        due_date=%s
-                    WHERE id=%s
-                    RETURNING id
+                    UPDATE todo
+                    SET category_id = %s,
+                        title = %s,
+                        due_date = %s
+                    WHERE id = %s;
                 """, [
                     req_body['category_id'],
                     req_body['title'],
                     req_body['due_date'],
-                    req_body['id'],
+                    id,
                 ])
-                return {"updated todo id": cur.fetchone()['id']}
+                return {"updated todo id": id}
 
         except Exception as e:
             print(repr(e))
-            return {"ERROR, check logs for details"}, 400
+            return {"error": "check logs"}, 400
 
     if request.method == "DELETE":
         try:
-            req_body = request.get_json()
             with conn.cursor() as cur:
                 cur.execute("""
-                    DELETE todo where id=%s RETURNING id
-                """, [
-                    req_body['id']
-                ])
-                return {"deleted id": cur.fetchone()['id']}
+                    DELETE FROM todo WHERE id = %s;
+                """, [id])
+                return {"deleted id": id}
 
         except Exception as e:
             print(repr(e))
