@@ -20,17 +20,19 @@ conn = psycopg.connect(db_url, row_factory=dict_row, autocommit=True)
 def index():
     return {"message": "Use /todo for API endpoint"}
 
+
 def check_key(api_key):
     with conn.cursor() as cur:
         cur.execute("""
             SELECT id
             FROM users
             WHERE api_key = %s""",
-            [api_key])
+                    [api_key])
         return cur.fetchone()['id']
-    
-@app.route("/users/<int:user_id>")
-def user(user_id):
+
+
+@app.route("/users")
+def user():
     try:
         user_id = check_key(request.args.get('api_key'))
     except:
@@ -41,7 +43,7 @@ def user(user_id):
             cur.execute("""
                 SELECT * 
                 FROM users
-                WHERE id = %s""", [ user_id ])
+                WHERE id = %s""", [user_id])
             result = cur.fetchone()
         return result or {"message": "ERROR: no such guest"}, 400
     except:
@@ -56,11 +58,11 @@ def get_todos():
         user_id = check_key(request.args.get('api_key'))
     except:
         return {"message": "ERROR: Invalid API-key"}, 401
-    
+
     if request.method == 'GET':
         with conn.cursor() as cur:
             cur.execute(
-            """ SELECT todo.id,
+                """ SELECT todo.id,
                 todo.user_id,
                 todo.title,
                 todo.done,
@@ -73,7 +75,7 @@ def get_todos():
                 INNER JOIN categories 
                 ON todo.category_id=categories.id
                 WHERE todo.user_id = %s
-                ORDER BY due_date ASC""",[
+                ORDER BY due_date ASC""", [
                     user_id
                 ])
             result = cur.fetchall()
@@ -108,7 +110,11 @@ def get_todos():
 
 
 @app.route("/todo/<int:id>", methods=["PUT", "PATCH", "DELETE"])
-def update_todo():
+def update_todo(id):
+    try:
+        user_id = check_key(request.args.get('api_key'))
+    except:
+        return {"message": "ERROR: Invalid API-key"}, 401
     if request.method == "PUT" or request.method == "PATCH":
         try:
             req_body = request.get_json()
@@ -118,13 +124,14 @@ def update_todo():
                     SET category_id=%s,
                         title=%s,
                         due_date=%s
-                    WHERE id=%s
+                    WHERE id=%s AND user_id=%s
                     RETURNING id
                 """, [
                     req_body['category_id'],
                     escape(req_body['title']),
                     req_body['due_date'],
-                    req_body['id'],
+                    [id],
+                    [user_id]
                 ])
                 return {"updated todo id": cur.fetchone()['id']}
 
@@ -137,9 +144,10 @@ def update_todo():
             req_body = request.get_json()
             with conn.cursor() as cur:
                 cur.execute("""
-                    DELETE todo where id=%s RETURNING id
+                    DELETE todo where id=%s AND user_id=%s RETURNING id
                 """, [
-                    req_body['id']
+                    [id]
+                    [user_id]
                 ])
                 return {"deleted id": cur.fetchone()['id']}
 
@@ -149,14 +157,11 @@ def update_todo():
 
     else:
         return {"Du använde metoden": request.method}
-    
-
 
 
 # Kom ihåg:
 # - pip install -r requirements.txt
 # - Kopiera/byt namn på .env-example ==> .env och sätt in en riktig DB_URL
 # - Ändra portnummer nedan
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8448, debug=True)
