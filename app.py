@@ -109,8 +109,8 @@ def get_todos():
         return {"Du använde metoden": request.method}
 
 
-@app.route("/todo/update", methods=["PUT", "PATCH", "DELETE"])
-def update_todo():
+@app.route("/todo/<int:id>", methods=["PUT", "PATCH", "DELETE"])
+def update_todo(id):
     try:
         user_id = check_key(request.args.get('api_key'))
     except:
@@ -130,8 +130,8 @@ def update_todo():
                     req_body['category_id'],
                     escape(req_body['title']),
                     req_body['due_date'],
-                    req_body['id'],
-                    [user_id]
+                    id,
+                    user_id
                 ])
                 return {"updated todo id": cur.fetchone()['id']}
 
@@ -141,15 +141,14 @@ def update_todo():
 
     if request.method == "DELETE":
         try:
-            req_body = request.get_json()
             with conn.cursor() as cur:
                 cur.execute("""
-                    DELETE todo where id=%s AND user_id=%s RETURNING id
+                    DELETE FROM todo WHERE id=%s AND user_id=%s
                 """, [
-                    req_body['id']
-                    [user_id]
+                    id,
+                    user_id
                 ])
-                return {"deleted id": cur.fetchone()['id']}
+                return {"deleted id": id}
 
         except Exception as e:
             print(repr(e))
