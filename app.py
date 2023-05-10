@@ -125,7 +125,6 @@ def update_todo(id):
                         title=%s,
                         due_date=%s
                     WHERE id=%s AND user_id=%s
-                    RETURNING id
                 """, [
                     req_body['category_id'],
                     escape(req_body['title']),
@@ -133,11 +132,11 @@ def update_todo(id):
                     id,
                     user_id
                 ])
-                return {"updated todo id": cur.fetchone()['id']}
+                return {"updated todo id": id}
 
         except Exception as e:
             print(repr(e))
-            return {"ERROR, check logs for details"}, 400
+            return {"ERROR": "check logs for details"}, 400
 
     if request.method == "DELETE":
         try:
@@ -152,7 +151,7 @@ def update_todo(id):
 
         except Exception as e:
             print(repr(e))
-            return {"ERROR, check logs for details"}, 400
+            return {"ERROR": "check logs for details"}, 400
 
     else:
         return {"Du använde metoden": request.method}
