@@ -51,6 +51,12 @@ def user(user_id):
 
 @app.route("/todo", methods=["GET", "POST"])
 def get_todos():
+
+    try:
+        user_id = check_key(request.args.get('api_key'))
+    except:
+        return {"message": "ERROR: Invalid API-key"}, 401
+    
     if request.method == 'GET':
         with conn.cursor() as cur:
             cur.execute(
@@ -63,10 +69,13 @@ def get_todos():
                 todo.updated_at,
                 todo.sort_order,
                 categories.category_name 
-                FROM todo 
+                FROM todo
                 INNER JOIN categories 
                 ON todo.category_id=categories.id
-                ORDER BY due_date ASC""")
+                WHERE todo.user_id = %s
+                ORDER BY due_date ASC""",[
+                    user_id
+                ])
             result = cur.fetchall()
         return jsonify(result)
 
