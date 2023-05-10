@@ -1,7 +1,7 @@
 import os
 import psycopg
 from psycopg.rows import dict_row
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, escape
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -29,8 +29,8 @@ def check_key(api_key):
             [api_key])
         return cur.fetchone()['id']
     
-@app.route("/users/<int:id>")
-def user(id):
+@app.route("/users/<int:user_id>")
+def user(user_id):
     try:
         user_id = check_key(request.args.get('api_key'))
     except:
@@ -54,9 +54,21 @@ def get_todos():
     if request.method == 'GET':
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT todo.*, categories.category_name FROM todo INNER JOIN categories ON todo.category_id=categories.id")
+            """ SELECT todo.id,
+                todo.user_id,
+                todo.title,
+                todo.done,
+                todo.due_date,
+                todo.created_at,
+                todo.updated_at,
+                todo.sort_order,
+                categories.category_name 
+                FROM todo 
+                INNER JOIN categories 
+                ON todo.category_id=categories.id
+                ORDER BY due_date ASC""")
             result = cur.fetchall()
-        return {"ToDo": result}
+        return jsonify(result)
 
     if request.method == 'POST':
         try:
@@ -74,7 +86,7 @@ def get_todos():
                 """, [
                     req_body['user_id'],
                     req_body['category_id'],
-                    req_body['title'],
+                    escape(req_body['title']),
                     req_body['due_date'],
                 ])
                 return {"id": cur.fetchone()['id']}
@@ -101,7 +113,7 @@ def update_todo():
                     RETURNING id
                 """, [
                     req_body['category_id'],
-                    req_body['title'],
+                    escape(req_body['title']),
                     req_body['due_date'],
                     req_body['id'],
                 ])
