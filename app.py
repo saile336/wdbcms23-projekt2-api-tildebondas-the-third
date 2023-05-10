@@ -109,8 +109,8 @@ def get_todos():
         return {"Du använde metoden": request.method}
 
 
-@app.route("/todo/<int:id>", methods=["PUT", "PATCH", "DELETE"])
-def update_todo(id):
+@app.route("/todo/update", methods=["PUT", "PATCH", "DELETE"])
+def update_todo():
     try:
         user_id = check_key(request.args.get('api_key'))
     except:
@@ -130,7 +130,7 @@ def update_todo(id):
                     req_body['category_id'],
                     escape(req_body['title']),
                     req_body['due_date'],
-                    [id],
+                    req_body['id'],
                     [user_id]
                 ])
                 return {"updated todo id": cur.fetchone()['id']}
@@ -146,7 +146,7 @@ def update_todo(id):
                 cur.execute("""
                     DELETE todo where id=%s AND user_id=%s RETURNING id
                 """, [
-                    [id]
+                    req_body['id']
                     [user_id]
                 ])
                 return {"deleted id": cur.fetchone()['id']}

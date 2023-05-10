@@ -1,22 +1,21 @@
-@baseUrl = http://192.168.1.20:8322
+@baseUrl = http://192.168.1.20:8448
 
-GET {{baseUrl}}/todo
+GET {{baseUrl}}/todo?api_key=4A8F7B2E3D6C9A1F5E8D2C6B9A3F7E2D
 
 ###
 
-POST {{baseUrl}}/todo
+POST {{baseUrl}}/todo?api_key=4A8F7B2E3D6C9A1F5E8D2C6B9A3F7E2D
 Content-Type: application/json
 
 {
-    "user_id": 1,
     "category_id": 1,
-    "title": "Gör en ToDo API",
+    "title": "bababa",
     "due_date": "2023-05-20"
 }
 
 ###
 
-PUT {{baseUrl}}/todo/2
+PUT {{baseUrl}}/todo/update?api_key=4A8F7B2E3D6C9A1F5E8D2C6B9A3F7E2D
 Content-Type: application/json
 
 {
