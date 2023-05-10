@@ -93,7 +93,7 @@ def get_todos():
                         %s, %s, %s, %s
                     ) RETURNING id
                 """, [
-                    req_body['user_id'],
+                    user_id,
                     req_body['category_id'],
                     escape(req_body['title']),
                     req_body['due_date'],
